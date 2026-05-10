@@ -1,0 +1,55 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Repository purpose
+
+Two independent always-on-top clock utilities for Windows. They share no code, configuration, or build system.
+
+- `TimeHud/` — WPF (.NET 9) app showing `yyyy.MM.dd.HH:mm:ss`. Borderless, transparent backdrop, drag-to-move, mouse-wheel opacity, Ctrl+wheel font size, runtime font swap (5 fonts), runtime color (5 presets + WinForms ColorDialog for custom), autostart toggle, position+settings persistence in `%APPDATA%\TimeHud\settings.json`. The intended daily driver.
+- `MiniClock.ps1` / `MiniClock_v2.ps1` / `MiniClock.exe` — older PowerShell + WinForms HH:mm:ss clock. Kept in place but superseded by TimeHud.
+
+## Build & run
+
+**TimeHud (WPF, .NET 9):**
+```powershell
+dotnet test C:\Tools\TimeHud\TimeHud.sln          # unit tests for the testable units
+dotnet build C:\Tools\TimeHud\TimeHud.sln         # both projects
+dotnet run --project C:\Tools\TimeHud             # launch
+```
+Targets `net9.0-windows` with `UseWPF=true`. Solution contains two projects: `TimeHud` (WPF app) and `TimeHud.Tests` (xUnit). The test project also targets `net9.0-windows` so it can `ProjectReference` the WPF project; tests themselves only exercise non-WPF logic.
+
+**MiniClock (PowerShell):**
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\Tools\MiniClock.ps1
+```
+Or run the prebuilt `MiniClock.exe`. No build step — the `.exe` is shipped alongside the source and is regenerated out-of-band (e.g. via `ps2exe`), not by anything in this repo.
+
+## Architecture
+
+TimeHud splits into **TDD'd pure-C# units** and **WPF wiring** (single window, no MVVM framework, no DI container — straight code-behind). The split is deliberate: WPF surface (drag, P/Invoke, font construction) is verified manually; everything else has tests.
+
+**Tested (`TimeHud.Tests/`):**
+- `ClockFormatter` — fixed `yyyy.MM.dd.HH:mm:ss` invariant-culture format.
+- `OpacityModel` — clamp [0.10, 1.00] at 0.05 steps.
+- `SizeModel` — clamp [16, 200] at 4pt steps.
+- `SettingsStore` / `Settings` — JSON load/save, defaults on missing/corrupt.
+- `AutostartManager` — registry HKCU\…\Run toggle, idempotent. Uses `IRegistryStore` seam; tests use an in-memory fake.
+- `FontRegistry` — 5-font key↔display-name+source map (`cascadiamono` default, `cascadia`, `consolas`, `dseg7`, `d7mono`); unknown→default. Modern monos are listed first; bundled DSEG7 + Digital-7 Mono come after a separator.
+- `ColorPalette` — 5-preset key↔display-name+hex map (`green` default phosphor `#00FF5A`, `amber`, `cyan`, `white`, `red`); unknown→default. Tests verify each preset's hex parses and matches the documented sRGB.
+
+**Untested WPF wiring:**
+- `MainWindow.xaml`/`.cs` — borderless transparent window, rounded `Backdrop` border + `ClockText`. Plain wheel → `OpacityModel`; Ctrl+wheel → `SizeModel`. Right-click context menu wires Font/Color (presets + Custom...)/Autostart/Reset/Exit. Color "Custom..." opens `System.Windows.Forms.ColorDialog` (modal).
+- `RegistryStore` — production `IRegistryStore` over `Microsoft.Win32.Registry`.
+- `FontFamilyFactory` — turns a `FontEntry` into a WPF `FontFamily` (handles both pack URIs and system family names).
+- `TopmostKeeper` — P/Invoke `SetWindowPos(HWND_TOPMOST, …)`. A 2-second `DispatcherTimer` re-asserts topmost in `MainWindow` because Windows demotes `Topmost=true` after UAC prompts, fullscreen apps, DWM restarts, etc. Without this the clock silently drops behind other windows over time.
+
+## Things that are easy to get wrong
+
+- **WPF bundled-font URI:** in `FontRegistry`, the pack URI's `#` is followed by the font's *embedded family name* (`DSEG7 Classic Mini`), not the file name. If you replace the .ttf, verify the embedded family with `(New-Object System.Windows.Media.GlyphTypeface($uri)).FamilyNames.Values` — a mismatch silently falls back to a default font with no error.
+- **Backdrop opacity vs. window opacity:** opacity is applied to the `Backdrop` `Border.Opacity`, not `Window.Opacity`. Putting it on the Window would also fade the text. The `Backdrop` and `ClockText` are siblings in a `Grid` so the backdrop's opacity doesn't cascade.
+- **`Window.AllowsTransparency="True"` requires `WindowStyle="None"`** — they're paired; changing one without the other will throw at startup.
+- **Test project must target `net9.0-windows`** to reference the WPF project. A plain `net9.0` test project won't satisfy the project-reference constraint.
+- **`UseWPF=true` + `UseWindowsForms=true` together cause name collisions** between `System.Windows.Media` (WPF) and `System.Drawing` / `System.Windows.Forms` (WinForms). The collisions seen so far: `Application`, `FontFamily`, `Color`, `ColorConverter`. We resolve them with `using` aliases at the top of each affected file (`SwmColor`, `SdColor`, `SwmColorConverter`, `SwfColorDialog`, etc.) rather than dropping `ImplicitUsings` or removing one of the two flags. Adding new code that touches these types? Add the alias.
+- **`MiniClock.ps1` and `MiniClock_v2.ps1` are byte-identical** with no automation keeping them in sync. The current `MiniClock.exe` was built from `MiniClock.ps1` (v2 was created later from a copy and has never been compiled).
+- **MiniClock targets the first non-primary monitor when one exists** (`AllScreens[0]`, not `PrimaryScreen`) — only relevant if you go back to maintaining MiniClock.

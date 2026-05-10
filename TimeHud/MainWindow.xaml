@@ -1,0 +1,47 @@
+<Window x:Class="TimeHud.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TimeHud"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterScreen"
+        MouseLeftButtonDown="OnRootMouseLeftButtonDown"
+        PreviewMouseWheel="OnRootMouseWheel">
+    <Window.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="Font">
+                <MenuItem x:Name="FontCascadiaMono" Header="Cascadia Mono" IsCheckable="True" Click="OnFontPresetClick" Tag="cascadiamono"/>
+                <MenuItem x:Name="FontCascadia"     Header="Cascadia Code" IsCheckable="True" Click="OnFontPresetClick" Tag="cascadia"/>
+                <MenuItem x:Name="FontConsolas"     Header="Consolas"      IsCheckable="True" Click="OnFontPresetClick" Tag="consolas"/>
+                <Separator/>
+                <MenuItem x:Name="FontDseg7"        Header="DSEG7 Classic Mini" IsCheckable="True" Click="OnFontPresetClick" Tag="dseg7"/>
+                <MenuItem x:Name="FontD7Mono"       Header="Digital-7 Mono"     IsCheckable="True" Click="OnFontPresetClick" Tag="d7mono"/>
+            </MenuItem>
+            <MenuItem Header="Color">
+                <MenuItem x:Name="ColorGreen" Header="Phosphor Green" IsCheckable="True" Click="OnColorPresetClick" Tag="green"/>
+                <MenuItem x:Name="ColorAmber" Header="Amber"          IsCheckable="True" Click="OnColorPresetClick" Tag="amber"/>
+                <MenuItem x:Name="ColorCyan"  Header="Cyan"           IsCheckable="True" Click="OnColorPresetClick" Tag="cyan"/>
+                <MenuItem x:Name="ColorWhite" Header="White"          IsCheckable="True" Click="OnColorPresetClick" Tag="white"/>
+                <MenuItem x:Name="ColorRed"   Header="Red"            IsCheckable="True" Click="OnColorPresetClick" Tag="red"/>
+                <Separator/>
+                <MenuItem Header="Custom..." Click="OnColorCustomClick"/>
+            </MenuItem>
+            <MenuItem x:Name="AutostartMenu" Header="Start with Windows" IsCheckable="True" Click="OnAutostartClick"/>
+            <MenuItem Header="Reset position" Click="OnResetPositionClick"/>
+            <Separator/>
+            <MenuItem Header="Exit" Click="OnExitClick"/>
+        </ContextMenu>
+    </Window.ContextMenu>
+    <Grid>
+        <Border x:Name="Backdrop" CornerRadius="12" Background="#202020"/>
+        <TextBlock x:Name="ClockText"
+                   Foreground="#00FF5A"
+                   Margin="20,10"
+                   Text="0000.00.00.00:00:00"/>
+    </Grid>
+</Window>
