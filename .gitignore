@@ -12,3 +12,6 @@ obj/
 # OS
 Thumbs.db
 .DS_Store
+
+# Stale legacy artifact (prevents accidental re-add if disk copy lingers)
+MiniClock.exe

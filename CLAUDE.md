@@ -4,26 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository purpose
 
-Two independent always-on-top clock utilities for Windows. They share no code, configuration, or build system.
+`TimeHud/` — WPF (.NET 9) always-on-top clock for Windows. Shows `yyyy.MM.dd.HH:mm:ss`. Borderless, transparent backdrop, drag-to-move, mouse-wheel opacity, Ctrl+wheel font size, runtime font swap (5 fonts), runtime color (5 presets + WinForms ColorDialog for custom), autostart toggle, position+settings persistence in `%APPDATA%\TimeHud\settings.json`.
 
-- `TimeHud/` — WPF (.NET 9) app showing `yyyy.MM.dd.HH:mm:ss`. Borderless, transparent backdrop, drag-to-move, mouse-wheel opacity, Ctrl+wheel font size, runtime font swap (5 fonts), runtime color (5 presets + WinForms ColorDialog for custom), autostart toggle, position+settings persistence in `%APPDATA%\TimeHud\settings.json`. The intended daily driver.
-- `MiniClock.ps1` / `MiniClock_v2.ps1` / `MiniClock.exe` — older PowerShell + WinForms HH:mm:ss clock. Kept in place but superseded by TimeHud.
+An earlier PowerShell + WinForms `MiniClock` lived in this repo and was removed in a subsequent commit; it's recoverable from `git log --diff-filter=D --name-only` if anyone ever asks.
 
 ## Build & run
 
-**TimeHud (WPF, .NET 9):**
 ```powershell
 dotnet test C:\Tools\TimeHud\TimeHud.sln          # unit tests for the testable units
 dotnet build C:\Tools\TimeHud\TimeHud.sln         # both projects
 dotnet run --project C:\Tools\TimeHud             # launch
 ```
-Targets `net9.0-windows` with `UseWPF=true`. Solution contains two projects: `TimeHud` (WPF app) and `TimeHud.Tests` (xUnit). The test project also targets `net9.0-windows` so it can `ProjectReference` the WPF project; tests themselves only exercise non-WPF logic.
-
-**MiniClock (PowerShell):**
-```powershell
-powershell -ExecutionPolicy Bypass -File C:\Tools\MiniClock.ps1
-```
-Or run the prebuilt `MiniClock.exe`. No build step — the `.exe` is shipped alongside the source and is regenerated out-of-band (e.g. via `ps2exe`), not by anything in this repo.
+Targets `net9.0-windows` with `UseWPF=true` and `UseWindowsForms=true` (the latter for `System.Windows.Forms.ColorDialog`). Solution contains two projects: `TimeHud` (WPF app) and `TimeHud.Tests` (xUnit). The test project also targets `net9.0-windows` so it can `ProjectReference` the WPF project; tests themselves only exercise non-WPF logic.
 
 ## Architecture
 
@@ -51,5 +43,3 @@ TimeHud splits into **TDD'd pure-C# units** and **WPF wiring** (single window, n
 - **`Window.AllowsTransparency="True"` requires `WindowStyle="None"`** — they're paired; changing one without the other will throw at startup.
 - **Test project must target `net9.0-windows`** to reference the WPF project. A plain `net9.0` test project won't satisfy the project-reference constraint.
 - **`UseWPF=true` + `UseWindowsForms=true` together cause name collisions** between `System.Windows.Media` (WPF) and `System.Drawing` / `System.Windows.Forms` (WinForms). The collisions seen so far: `Application`, `FontFamily`, `Color`, `ColorConverter`. We resolve them with `using` aliases at the top of each affected file (`SwmColor`, `SdColor`, `SwmColorConverter`, `SwfColorDialog`, etc.) rather than dropping `ImplicitUsings` or removing one of the two flags. Adding new code that touches these types? Add the alias.
-- **`MiniClock.ps1` and `MiniClock_v2.ps1` are byte-identical** with no automation keeping them in sync. The current `MiniClock.exe` was built from `MiniClock.ps1` (v2 was created later from a copy and has never been compiled).
-- **MiniClock targets the first non-primary monitor when one exists** (`AllScreens[0]`, not `PrimaryScreen`) — only relevant if you go back to maintaining MiniClock.

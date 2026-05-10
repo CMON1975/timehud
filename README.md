@@ -45,7 +45,6 @@ dotnet test C:\Tools\TimeHud\TimeHud.sln
 - `TimeHud/` — WPF app (.NET 9, `net9.0-windows`, `UseWPF=true`, `UseWindowsForms=true`)
 - `TimeHud.Tests/` — xUnit test project, also `net9.0-windows` so it can `ProjectReference` the WPF project
 - `clock.ico` — application icon
-- `MiniClock.ps1` / `MiniClock_v2.ps1` / `MiniClock.exe` — earlier PowerShell + WinForms HH:mm:ss clock. Kept as a legacy reference; superseded by TimeHud
 - `CLAUDE.md` — architecture notes and gotchas for future Claude Code sessions
 
 ## Architecture (one-liner)
