@@ -4,7 +4,7 @@ Always-on-top HUD clock for Windows 11. Borderless, transparent, runtime-configu
 
 ## Features
 
-- `yyyy.MM.dd.HH:mm:ss` format, ticking each second
+- `yyyy.MM.dd (DDD) HH:mm:ss` format (uppercase 3-letter weekday), ticking each second
 - Drag with left-click anywhere on the clock
 - Mouse wheel: opacity (10%–100%, 5% steps)
 - `Ctrl` + wheel: font size (16–200pt, 4pt steps)

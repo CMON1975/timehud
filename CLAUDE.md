@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository purpose
 
-`TimeHud/` — WPF (.NET 9) always-on-top clock for Windows. Shows `yyyy.MM.dd.HH:mm:ss`. Borderless, transparent backdrop, drag-to-move, mouse-wheel opacity, Ctrl+wheel font size, runtime font swap (5 fonts), runtime color (5 presets + WinForms ColorDialog for custom), autostart toggle, position+settings persistence in `%APPDATA%\TimeHud\settings.json`.
+`TimeHud/` — WPF (.NET 9) always-on-top clock for Windows. Shows `yyyy.MM.dd (DDD) HH:mm:ss`. Borderless, transparent backdrop, drag-to-move, mouse-wheel opacity, Ctrl+wheel font size, runtime font swap (5 fonts), runtime color (5 presets + WinForms ColorDialog for custom), autostart toggle, position+settings persistence in `%APPDATA%\TimeHud\settings.json`.
 
 An earlier PowerShell + WinForms `MiniClock` lived in this repo and was removed in a subsequent commit; it's recoverable from `git log --diff-filter=D --name-only` if anyone ever asks.
 
@@ -22,7 +22,7 @@ Targets `net9.0-windows` with `UseWPF=true` and `UseWindowsForms=true` (the latt
 TimeHud splits into **TDD'd pure-C# units** and **WPF wiring** (single window, no MVVM framework, no DI container — straight code-behind). The split is deliberate: WPF surface (drag, P/Invoke, font construction) is verified manually; everything else has tests.
 
 **Tested (`TimeHud.Tests/`):**
-- `ClockFormatter` — fixed `yyyy.MM.dd.HH:mm:ss` invariant-culture format.
+- `ClockFormatter` — fixed `yyyy.MM.dd (DDD) HH:mm:ss` invariant-culture format; the weekday is the invariant `ddd` abbreviation upper-cased (always English, never the machine's locale).
 - `OpacityModel` — clamp [0.10, 1.00] at 0.05 steps.
 - `SizeModel` — clamp [16, 200] at 4pt steps.
 - `SettingsStore` / `Settings` — JSON load/save, defaults on missing/corrupt.
