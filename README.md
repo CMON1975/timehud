@@ -19,26 +19,31 @@ Always-on-top HUD clock for Windows 11. Borderless, transparent, runtime-configu
 
 ## Build & run
 
-Requires the .NET 9 SDK on Windows.
+Requires the .NET 9 SDK on Windows. All commands are run from the repository root.
 
 ```powershell
-dotnet build  C:\Tools\TimeHud\TimeHud.sln
-dotnet run    --project C:\Tools\TimeHud
+git clone https://github.com/CMON1975/timehud.git
+cd timehud
+
+dotnet build TimeHud\TimeHud.sln
+dotnet run --project TimeHud
 ```
 
 For a redistributable build:
 
 ```powershell
-dotnet publish C:\Tools\TimeHud\TimeHud.csproj -c Release -r win-x64 --self-contained false
+dotnet publish TimeHud\TimeHud.csproj -c Release -r win-x64 --self-contained false -o publish
 ```
+
+The result is `publish\TimeHud.exe` — framework-dependent, so the target machine needs the .NET 9 desktop runtime. Point a Start-menu shortcut at it, or use the **Start with Windows** menu item to register it for autostart.
 
 ## Tests
 
 ```powershell
-dotnet test C:\Tools\TimeHud\TimeHud.sln
+dotnet test TimeHud\TimeHud.sln
 ```
 
-47 xUnit tests cover the pure-logic units (`ClockFormatter`, `OpacityModel`, `SizeModel`, `SettingsStore`, `AutostartManager`, `FontRegistry`, `ColorPalette`). The WPF surface (drag, P/Invoke topmost, ColorDialog) is verified manually — see the verification checklist in [CLAUDE.md](CLAUDE.md).
+54 xUnit tests cover the pure-logic units (`ClockFormatter`, `OpacityModel`, `SizeModel`, `SettingsStore`, `AutostartManager`, `FontRegistry`, `ColorPalette`). The WPF surface (drag, P/Invoke topmost, ColorDialog) is verified manually — see "Things that are easy to get wrong" in [CLAUDE.md](CLAUDE.md).
 
 ## Repository layout
 
