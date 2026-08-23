@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository purpose
 
-`TimeHud/` — WPF (.NET 9) always-on-top clock for Windows. Shows `yyyy.MM.dd (DDD) HH:mm:ss`. Borderless, transparent backdrop, drag-to-move, mouse-wheel opacity, Ctrl+wheel font size, runtime font swap (5 fonts), runtime color (5 presets + WinForms ColorDialog for custom), autostart toggle, position+settings persistence in `%APPDATA%\TimeHud\settings.json`.
+`TimeHud/` — WPF (.NET 9) always-on-top clock for Windows. Shows `yyyy.MM.dd (DDD) HH:mm:ss`. Borderless, transparent backdrop, drag-to-move, mouse-wheel backdrop opacity, Ctrl+wheel font size, Shift+wheel text alpha, runtime font swap (5 fonts), runtime color (5 presets + WinForms ColorDialog for custom), Size / Text alpha preset submenus, autostart toggle, position+settings persistence in `%APPDATA%\TimeHud\settings.json` (snapshotted to `settings.json.bak` at each launch).
 
 An earlier PowerShell + WinForms `MiniClock` lived in this repo and was removed in a subsequent commit; it's recoverable from `git log --diff-filter=D --name-only` if anyone ever asks.
 
@@ -25,13 +25,13 @@ TimeHud splits into **TDD'd pure-C# units** and **WPF wiring** (single window, n
 - `ClockFormatter` — fixed `yyyy.MM.dd (DDD) HH:mm:ss` invariant-culture format; the weekday is the invariant `ddd` abbreviation upper-cased (always English, never the machine's locale).
 - `OpacityModel` — clamp [0.10, 1.00] at 0.05 steps.
 - `SizeModel` — clamp [16, 200] at 4pt steps.
-- `SettingsStore` / `Settings` — JSON load/save, defaults on missing/corrupt.
+- `SettingsStore` / `Settings` — JSON load/save, defaults on missing/corrupt (missing *properties* also fall back per-property, so a partial file silently resurrects defaults — this once reset a user's size/opacity). `Archive` copies the file to `settings.json.bak` at launch as the one-deep restore point.
 - `AutostartManager` — registry HKCU\…\Run toggle, idempotent. Uses `IRegistryStore` seam; tests use an in-memory fake.
 - `FontRegistry` — 5-font key↔display-name+source map (`cascadiamono` default, `cascadia`, `consolas`, `dseg7`, `d7mono`); unknown→default. Modern monos are listed first; bundled DSEG7 + Digital-7 Mono come after a separator.
 - `ColorPalette` — 5-preset key↔display-name+hex map (`green` default phosphor `#00FF5A`, `amber`, `cyan`, `white`, `red`); unknown→default. Tests verify each preset's hex parses and matches the documented sRGB.
 
 **Untested WPF wiring:**
-- `MainWindow.xaml`/`.cs` — borderless transparent window, rounded `Backdrop` border + `ClockText`. Plain wheel → `OpacityModel`; Ctrl+wheel → `SizeModel`. Right-click context menu wires Font/Color (presets + Custom...)/Autostart/Reset/Exit. Color "Custom..." opens `System.Windows.Forms.ColorDialog` (modal).
+- `MainWindow.xaml`/`.cs` — borderless transparent window, rounded `Backdrop` border + `ClockText`. Plain wheel → `OpacityModel` (backdrop); Shift+wheel → a second `OpacityModel` driving `ClockText.Opacity` (text alpha); Ctrl+wheel → `SizeModel`. Right-click context menu wires Font/Color (presets + Custom...)/Size/Text alpha/Autostart/Reset/Exit. Color "Custom..." opens `System.Windows.Forms.ColorDialog` (modal). Size and Text alpha submenu checkmarks are synced by iterating the submenu's `MenuItem`s and comparing `Tag` (invariant-parsed) to the model value.
 - `RegistryStore` — production `IRegistryStore` over `Microsoft.Win32.Registry`.
 - `FontFamilyFactory` — turns a `FontEntry` into a WPF `FontFamily` (handles both pack URIs and system family names).
 - `TopmostKeeper` — P/Invoke `SetWindowPos(HWND_TOPMOST, …)`. A 2-second `DispatcherTimer` re-asserts topmost in `MainWindow` because Windows demotes `Topmost=true` after UAC prompts, fullscreen apps, DWM restarts, etc. Without this the clock silently drops behind other windows over time.

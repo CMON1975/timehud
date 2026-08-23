@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,6 +25,7 @@ public partial class MainWindow : Window
     private readonly AutostartManager _autostart = new(new RegistryStore());
 
     private OpacityModel _opacity = new(0.75);
+    private OpacityModel _textOpacity = new(1.00);
     private SizeModel _size = new(48);
     private string _fontKey = FontRegistry.DefaultKey;
     private string _colorHex = ColorPalette.Lookup(ColorPalette.DefaultKey).Hex;
@@ -38,7 +40,9 @@ public partial class MainWindow : Window
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         var s = SettingsStore.Load(SettingsPath);
+        SettingsStore.Archive(SettingsPath);
         _opacity = new OpacityModel(s.Opacity);
+        _textOpacity = new OpacityModel(s.TextOpacity);
         _size = new SizeModel(s.FontSize);
         _fontKey = s.FontKey;
         _colorHex = s.Color;
@@ -51,6 +55,7 @@ public partial class MainWindow : Window
         }
 
         Backdrop.Opacity = _opacity.Value;
+        ClockText.Opacity = _textOpacity.Value;
         ClockText.FontSize = _size.Value;
         ApplyFont(_fontKey);
         ApplyColor(_colorHex);
@@ -58,6 +63,8 @@ public partial class MainWindow : Window
 
         SyncFontMenuChecks();
         SyncColorMenuChecks();
+        SyncSizeMenuChecks();
+        SyncTextAlphaMenuChecks();
         AutostartMenu.IsChecked = _autostart.IsEnabled();
 
         _clockTimer.Tick += (_, _) => ClockText.Text = ClockFormatter.Format(DateTime.Now);
@@ -78,6 +85,13 @@ public partial class MainWindow : Window
         {
             if (e.Delta > 0) _size.StepUp(); else _size.StepDown();
             ClockText.FontSize = _size.Value;
+            SyncSizeMenuChecks();
+        }
+        else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+        {
+            if (e.Delta > 0) _textOpacity.StepUp(); else _textOpacity.StepDown();
+            ClockText.Opacity = _textOpacity.Value;
+            SyncTextAlphaMenuChecks();
         }
         else
         {
@@ -94,6 +108,22 @@ public partial class MainWindow : Window
         _fontKey = key;
         ApplyFont(key);
         SyncFontMenuChecks();
+        SaveCurrent();
+    }
+
+    private void OnSizePresetClick(object sender, RoutedEventArgs e)
+    {
+        _size = new SizeModel(int.Parse((string)((MenuItem)sender).Tag, CultureInfo.InvariantCulture));
+        ClockText.FontSize = _size.Value;
+        SyncSizeMenuChecks();
+        SaveCurrent();
+    }
+
+    private void OnTextAlphaPresetClick(object sender, RoutedEventArgs e)
+    {
+        _textOpacity = new OpacityModel(double.Parse((string)((MenuItem)sender).Tag, CultureInfo.InvariantCulture));
+        ClockText.Opacity = _textOpacity.Value;
+        SyncTextAlphaMenuChecks();
         SaveCurrent();
     }
 
@@ -147,6 +177,20 @@ public partial class MainWindow : Window
         ColorRed.IsChecked   = HexEquals(_colorHex, ColorPalette.Lookup("red").Hex);
     }
 
+    private void SyncSizeMenuChecks()
+    {
+        foreach (var item in SizeMenu.Items.OfType<MenuItem>())
+            if (item.Tag is string tag)
+                item.IsChecked = int.Parse(tag, CultureInfo.InvariantCulture) == _size.Value;
+    }
+
+    private void SyncTextAlphaMenuChecks()
+    {
+        foreach (var item in TextAlphaMenu.Items.OfType<MenuItem>())
+            if (item.Tag is string tag)
+                item.IsChecked = Math.Abs(double.Parse(tag, CultureInfo.InvariantCulture) - _textOpacity.Value) < 0.005;
+    }
+
     private static bool HexEquals(string a, string b) =>
         string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
@@ -184,6 +228,7 @@ public partial class MainWindow : Window
         X = Left,
         Y = Top,
         Opacity = _opacity.Value,
+        TextOpacity = _textOpacity.Value,
         FontSize = _size.Value,
         FontKey = _fontKey,
         Color = _colorHex,

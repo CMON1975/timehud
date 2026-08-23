@@ -6,16 +6,19 @@ Always-on-top HUD clock for Windows 11. Borderless, transparent, runtime-configu
 
 - `yyyy.MM.dd (DDD) HH:mm:ss` format (uppercase 3-letter weekday), ticking each second
 - Drag with left-click anywhere on the clock
-- Mouse wheel: opacity (10%–100%, 5% steps)
+- Mouse wheel: backdrop opacity (10%–100%, 5% steps)
 - `Ctrl` + wheel: font size (16–200pt, 4pt steps)
+- `Shift` + wheel: text alpha (10%–100%, 5% steps)
 - Right-click menu:
   - **Font** — Cascadia Mono · Cascadia Code · Consolas · DSEG7 Classic Mini · Digital-7 Mono
   - **Color** — Phosphor Green · Amber · Cyan · White · Red · Custom… (color picker dialog)
+  - **Size** — preset sizes 20–96 pt
+  - **Text alpha** — preset text transparency 30%–100%
   - **Start with Windows** — adds/removes a `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\TimeHud` entry
   - **Reset position** — recenter on primary monitor
   - **Exit**
 - Self-keeping topmost: re-asserts `HWND_TOPMOST` every 2 seconds, defeating UAC / fullscreen demotion
-- All settings persist to `%APPDATA%\TimeHud\settings.json` (position, opacity, size, font, color, autostart)
+- All settings persist to `%APPDATA%\TimeHud\settings.json` (position, opacity, text alpha, size, font, color, autostart); on every launch the previous file is snapshotted to `settings.json.bak` as a one-deep restore point
 
 ## Build & run
 
@@ -43,7 +46,7 @@ The result is `publish\TimeHud.exe` — framework-dependent, so the target machi
 dotnet test TimeHud\TimeHud.sln
 ```
 
-54 xUnit tests cover the pure-logic units (`ClockFormatter`, `OpacityModel`, `SizeModel`, `SettingsStore`, `AutostartManager`, `FontRegistry`, `ColorPalette`). The WPF surface (drag, P/Invoke topmost, ColorDialog) is verified manually — see "Things that are easy to get wrong" in [CLAUDE.md](CLAUDE.md).
+59 xUnit tests cover the pure-logic units (`ClockFormatter`, `OpacityModel`, `SizeModel`, `SettingsStore`, `AutostartManager`, `FontRegistry`, `ColorPalette`). The WPF surface (drag, P/Invoke topmost, ColorDialog) is verified manually — see "Things that are easy to get wrong" in [CLAUDE.md](CLAUDE.md).
 
 ## Repository layout
 

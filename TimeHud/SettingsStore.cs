@@ -21,6 +21,14 @@ public static class SettingsStore
         }
     }
 
+    // Snapshot the on-disk file to <path>.bak so the pre-launch state survives
+    // anything this run does to the live file (wheel spam, corrupt-file reset).
+    public static void Archive(string path)
+    {
+        if (!File.Exists(path)) return;
+        File.Copy(path, path + ".bak", overwrite: true);
+    }
+
     public static void Save(string path, Settings settings)
     {
         var dir = Path.GetDirectoryName(path);

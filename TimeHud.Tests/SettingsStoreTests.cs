@@ -45,6 +45,7 @@ public class SettingsStoreTests : IDisposable
             X = 123.5,
             Y = 678.25,
             Opacity = 0.4,
+            TextOpacity = 0.65,
             FontSize = 96,
             FontKey = "cascadia",
             Color = "#FFB000"
@@ -55,9 +56,52 @@ public class SettingsStoreTests : IDisposable
         Assert.Equal(original.X!.Value, loaded.X!.Value, 3);
         Assert.Equal(original.Y!.Value, loaded.Y!.Value, 3);
         Assert.Equal(original.Opacity, loaded.Opacity, 3);
+        Assert.Equal(original.TextOpacity, loaded.TextOpacity, 3);
         Assert.Equal(original.FontSize, loaded.FontSize);
         Assert.Equal(original.FontKey, loaded.FontKey);
         Assert.Equal(original.Color, loaded.Color);
+    }
+
+    [Fact]
+    public void Default_text_opacity_is_fully_opaque()
+    {
+        Assert.Equal(1.00, Settings.Default.TextOpacity, 3);
+    }
+
+    [Fact]
+    public void Load_defaults_text_opacity_when_missing_from_json()
+    {
+        File.WriteAllText(_path, """{ "Opacity": 0.3, "FontSize": 32, "FontKey": "consolas", "Color": "#FFB000" }""");
+        var s = SettingsStore.Load(_path);
+        Assert.Equal(1.00, s.TextOpacity, 3);
+        Assert.Equal(0.3, s.Opacity, 3);
+        Assert.Equal(32, s.FontSize);
+    }
+
+    [Fact]
+    public void Archive_copies_existing_file_to_bak()
+    {
+        File.WriteAllText(_path, """{ "FontSize": 24 }""");
+        SettingsStore.Archive(_path);
+
+        Assert.Equal("""{ "FontSize": 24 }""", File.ReadAllText(_path + ".bak"));
+    }
+
+    [Fact]
+    public void Archive_overwrites_previous_bak()
+    {
+        File.WriteAllText(_path + ".bak", "old backup");
+        File.WriteAllText(_path, "new content");
+        SettingsStore.Archive(_path);
+
+        Assert.Equal("new content", File.ReadAllText(_path + ".bak"));
+    }
+
+    [Fact]
+    public void Archive_does_nothing_when_file_is_missing()
+    {
+        SettingsStore.Archive(_path);
+        Assert.False(File.Exists(_path + ".bak"));
     }
 
     [Fact]

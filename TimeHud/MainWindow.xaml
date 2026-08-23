@@ -31,6 +31,28 @@
                 <Separator/>
                 <MenuItem Header="Custom..." Click="OnColorCustomClick"/>
             </MenuItem>
+            <MenuItem x:Name="SizeMenu" Header="Size">
+                <MenuItem Header="20 pt" IsCheckable="True" Click="OnSizePresetClick" Tag="20"/>
+                <MenuItem Header="24 pt" IsCheckable="True" Click="OnSizePresetClick" Tag="24"/>
+                <MenuItem Header="28 pt" IsCheckable="True" Click="OnSizePresetClick" Tag="28"/>
+                <MenuItem Header="32 pt" IsCheckable="True" Click="OnSizePresetClick" Tag="32"/>
+                <MenuItem Header="40 pt" IsCheckable="True" Click="OnSizePresetClick" Tag="40"/>
+                <MenuItem Header="48 pt" IsCheckable="True" Click="OnSizePresetClick" Tag="48"/>
+                <MenuItem Header="64 pt" IsCheckable="True" Click="OnSizePresetClick" Tag="64"/>
+                <MenuItem Header="96 pt" IsCheckable="True" Click="OnSizePresetClick" Tag="96"/>
+                <Separator/>
+                <MenuItem Header="Ctrl+Wheel adjusts" IsEnabled="False"/>
+            </MenuItem>
+            <MenuItem x:Name="TextAlphaMenu" Header="Text alpha">
+                <MenuItem Header="100%" IsCheckable="True" Click="OnTextAlphaPresetClick" Tag="1.00"/>
+                <MenuItem Header="90%"  IsCheckable="True" Click="OnTextAlphaPresetClick" Tag="0.90"/>
+                <MenuItem Header="75%"  IsCheckable="True" Click="OnTextAlphaPresetClick" Tag="0.75"/>
+                <MenuItem Header="60%"  IsCheckable="True" Click="OnTextAlphaPresetClick" Tag="0.60"/>
+                <MenuItem Header="45%"  IsCheckable="True" Click="OnTextAlphaPresetClick" Tag="0.45"/>
+                <MenuItem Header="30%"  IsCheckable="True" Click="OnTextAlphaPresetClick" Tag="0.30"/>
+                <Separator/>
+                <MenuItem Header="Shift+Wheel adjusts" IsEnabled="False"/>
+            </MenuItem>
             <MenuItem x:Name="AutostartMenu" Header="Start with Windows" IsCheckable="True" Click="OnAutostartClick"/>
             <MenuItem Header="Reset position" Click="OnResetPositionClick"/>
             <Separator/>
