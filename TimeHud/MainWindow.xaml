@@ -60,10 +60,10 @@
         </ContextMenu>
     </Window.ContextMenu>
     <Grid>
-        <Border x:Name="Backdrop" CornerRadius="12" Background="#202020"/>
+        <Border x:Name="Backdrop" CornerRadius="6" Background="#202020"/>
         <TextBlock x:Name="ClockText"
                    Foreground="#00FF5A"
-                   Margin="20,10"
+                   Margin="10,5"
                    Text="0000.00.00.00:00:00"/>
     </Grid>
 </Window>
