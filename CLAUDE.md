@@ -11,9 +11,9 @@ An earlier PowerShell + WinForms `MiniClock` lived in this repo and was removed 
 ## Build & run
 
 ```powershell
-dotnet test C:\Tools\TimeHud\TimeHud.sln          # unit tests for the testable units
-dotnet build C:\Tools\TimeHud\TimeHud.sln         # both projects
-dotnet run --project C:\Tools\TimeHud             # launch
+dotnet test C:\Users\chris\personal_projects\time_hud\TimeHud\TimeHud.sln          # unit tests for the testable units
+dotnet build C:\Users\chris\personal_projects\time_hud\TimeHud\TimeHud.sln         # both projects
+dotnet run --project C:\Users\chris\personal_projects\time_hud\TimeHud             # launch
 ```
 Targets `net9.0-windows` with `UseWPF=true` and `UseWindowsForms=true` (the latter for `System.Windows.Forms.ColorDialog`). Solution contains two projects: `TimeHud` (WPF app) and `TimeHud.Tests` (xUnit). The test project also targets `net9.0-windows` so it can `ProjectReference` the WPF project; tests themselves only exercise non-WPF logic.
 
