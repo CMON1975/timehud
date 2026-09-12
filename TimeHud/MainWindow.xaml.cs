@@ -26,7 +26,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _topmostTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private readonly DispatcherTimer _countdownTimer = new() { Interval = TimeSpan.FromMilliseconds(200) };
     private readonly AutostartManager _autostart = new(new RegistryStore());
-    private readonly ISoundPlayer _sound = new ConsoleBeepPlayer();
+    private readonly ISoundPlayer _sound = new TonePlayer();
 
     // Lucide "play" and "rotate-ccw" (24x24 viewBox, stroke 2, round caps/joins).
     private static readonly Geometry PlayIcon  = Geometry.Parse("M6 3 L20 12 L6 21 Z");
