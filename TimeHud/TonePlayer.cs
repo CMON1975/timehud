@@ -3,12 +3,12 @@ using System.Media;
 
 namespace TimeHud;
 
-/// <summary>Plays pre-rendered 880 Hz tones through the default audio device via winmm PlaySound.
+/// <summary>Plays pre-rendered tones (880 Hz tick, 1175 Hz finish) through the default audio device via winmm PlaySound.
 /// Replaces kernel32 Beep, which is silent in many launch contexts on modern Windows.</summary>
 public sealed class TonePlayer : ISoundPlayer
 {
     private readonly byte[] _short = WavTone.Generate(880, 150);
-    private readonly byte[] _long = WavTone.Generate(880, 1000);
+    private readonly byte[] _long = WavTone.Generate(1175, 1000);
 
     public void Beep() => Play(_short);
 
