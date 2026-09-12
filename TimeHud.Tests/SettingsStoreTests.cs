@@ -48,7 +48,9 @@ public class SettingsStoreTests : IDisposable
             TextOpacity = 0.65,
             FontSize = 96,
             FontKey = "cascadia",
-            Color = "#FFB000"
+            Color = "#FFB000",
+            TimerMinutes = 15,
+            ShowTimer = false
         };
         SettingsStore.Save(_path, original);
 
@@ -60,6 +62,8 @@ public class SettingsStoreTests : IDisposable
         Assert.Equal(original.FontSize, loaded.FontSize);
         Assert.Equal(original.FontKey, loaded.FontKey);
         Assert.Equal(original.Color, loaded.Color);
+        Assert.Equal(original.TimerMinutes, loaded.TimerMinutes);
+        Assert.Equal(original.ShowTimer, loaded.ShowTimer);
     }
 
     [Fact]
@@ -76,6 +80,27 @@ public class SettingsStoreTests : IDisposable
         Assert.Equal(1.00, s.TextOpacity, 3);
         Assert.Equal(0.3, s.Opacity, 3);
         Assert.Equal(32, s.FontSize);
+    }
+
+    [Fact]
+    public void Default_timer_minutes_is_30()
+    {
+        Assert.Equal(30, Settings.Default.TimerMinutes);
+    }
+
+    [Fact]
+    public void Default_show_timer_is_true()
+    {
+        Assert.True(Settings.Default.ShowTimer);
+    }
+
+    [Fact]
+    public void Load_defaults_timer_fields_when_missing_from_json()
+    {
+        File.WriteAllText(_path, """{ "Opacity": 0.3, "FontSize": 32, "FontKey": "consolas", "Color": "#FFB000" }""");
+        var s = SettingsStore.Load(_path);
+        Assert.Equal(30, s.TimerMinutes);
+        Assert.True(s.ShowTimer);
     }
 
     [Fact]

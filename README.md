@@ -5,6 +5,7 @@ Always-on-top HUD clock for Windows 11. Borderless, transparent, runtime-configu
 ## Features
 
 - `yyyy.MM.dd (DDD) HH:mm:ss` format (uppercase 3-letter weekday), ticking each second
+- Stand-up timer beside the clock (`CLOCK | 30:00 ▶`): press play to count down, one beep per second for the last three seconds, then the digits turn red and blink until you press reset (Lucide `rotate-ccw`), which restarts from the full duration. Optional, on by default.
 - Drag with left-click anywhere on the clock
 - Mouse wheel: backdrop opacity (10%–100%, 5% steps)
 - `Ctrl` + wheel: font size (16–200pt, 4pt steps)
@@ -14,11 +15,12 @@ Always-on-top HUD clock for Windows 11. Borderless, transparent, runtime-configu
   - **Color** — Phosphor Green · Amber · Cyan · White · Red · Custom… (color picker dialog)
   - **Size** — preset sizes 20–96 pt
   - **Text alpha** — preset text transparency 30%–100%
+  - **Timer** — Show timer toggle · 5 / 10 / 15 / 30 / 45 / 60 min (changing the duration mid-run restarts it; hiding cancels it)
   - **Start with Windows** — adds/removes a `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\TimeHud` entry
   - **Reset position** — recenter on primary monitor
   - **Exit**
 - Self-keeping topmost: re-asserts `HWND_TOPMOST` every 2 seconds, defeating UAC / fullscreen demotion
-- All settings persist to `%APPDATA%\TimeHud\settings.json` (position, opacity, text alpha, size, font, color, autostart); on every launch the previous file is snapshotted to `settings.json.bak` as a one-deep restore point
+- All settings persist to `%APPDATA%\TimeHud\settings.json` (position, opacity, text alpha, size, font, color, timer duration, timer visibility, autostart); on every launch the previous file is snapshotted to `settings.json.bak` as a one-deep restore point
 
 ## Build & run
 
@@ -46,7 +48,7 @@ The result is `publish\TimeHud.exe` — framework-dependent, so the target machi
 dotnet test TimeHud\TimeHud.sln
 ```
 
-59 xUnit tests cover the pure-logic units (`ClockFormatter`, `OpacityModel`, `SizeModel`, `SettingsStore`, `AutostartManager`, `FontRegistry`, `ColorPalette`). The WPF surface (drag, P/Invoke topmost, ColorDialog) is verified manually — see "Things that are easy to get wrong" in [CLAUDE.md](CLAUDE.md).
+86 xUnit tests cover the pure-logic units (`ClockFormatter`, `CountdownModel`, `CountdownFormatter`, `OpacityModel`, `SizeModel`, `SettingsStore`, `AutostartManager`, `FontRegistry`, `ColorPalette`). The WPF surface (drag, P/Invoke topmost, ColorDialog, timer button, flash animation, beep) is verified manually — see "Things that are easy to get wrong" in [CLAUDE.md](CLAUDE.md).
 
 ## Repository layout
 

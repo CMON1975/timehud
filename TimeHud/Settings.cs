@@ -9,6 +9,8 @@ public sealed class Settings
     public int FontSize { get; set; } = 48;
     public string FontKey { get; set; } = "cascadiamono";
     public string Color { get; set; } = "#00FF5A";
+    public int TimerMinutes { get; set; } = 30;
+    public bool ShowTimer { get; set; } = true;
 
     public static Settings Default => new();
 }

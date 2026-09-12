@@ -53,6 +53,16 @@
                 <Separator/>
                 <MenuItem Header="Shift+Wheel adjusts" IsEnabled="False"/>
             </MenuItem>
+            <MenuItem x:Name="TimerMenu" Header="Timer">
+                <MenuItem x:Name="ShowTimerMenu" Header="Show timer" IsCheckable="True" Click="OnShowTimerClick"/>
+                <Separator/>
+                <MenuItem Header="5 min"  IsCheckable="True" Click="OnTimerPresetClick" Tag="5"/>
+                <MenuItem Header="10 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="10"/>
+                <MenuItem Header="15 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="15"/>
+                <MenuItem Header="30 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="30"/>
+                <MenuItem Header="45 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="45"/>
+                <MenuItem Header="60 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="60"/>
+            </MenuItem>
             <MenuItem x:Name="AutostartMenu" Header="Start with Windows" IsCheckable="True" Click="OnAutostartClick"/>
             <MenuItem Header="Reset position" Click="OnResetPositionClick"/>
             <Separator/>
@@ -61,9 +71,35 @@
     </Window.ContextMenu>
     <Grid>
         <Border x:Name="Backdrop" CornerRadius="6" Background="#202020"/>
-        <TextBlock x:Name="ClockText"
-                   Foreground="#00FF5A"
-                   Margin="10,5"
-                   Text="0000.00.00.00:00:00"/>
+        <!-- Row carries font family/size/color as TextElement attached properties (inherited by both
+             TextBlocks) and text alpha as Row.Opacity. Divider and icon brushes are set from code. -->
+        <StackPanel x:Name="Row" Orientation="Horizontal" Margin="10,5"
+                    TextElement.Foreground="#00FF5A" TextElement.FontSize="48">
+            <TextBlock x:Name="ClockText" VerticalAlignment="Center" Text="0000.00.00 (XXX) 00:00:00"/>
+            <StackPanel x:Name="TimerGroup" Orientation="Horizontal">
+                <Rectangle x:Name="Divider" Width="1" Margin="12,4" Opacity="0.5" Fill="#00FF5A"/>
+                <TextBlock x:Name="TimerText" VerticalAlignment="Center" Text="30:00"/>
+                <Button x:Name="TimerButton" Click="OnTimerButtonClick" Margin="8,0,0,0"
+                        Focusable="False" Cursor="Hand" VerticalAlignment="Center">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="Transparent" Padding="2">
+                                <ContentPresenter/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Viewbox x:Name="TimerIconBox" Stretch="Uniform" Width="38" Height="38">
+                        <Canvas Width="24" Height="24">
+                            <!-- Lucide icon (play / rotate-ccw), swapped from code-behind. -->
+                            <Path x:Name="TimerIcon"
+                                  Stroke="#00FF5A"
+                                  StrokeThickness="2"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Data="M6 3 L20 12 L6 21 Z"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </Window>
