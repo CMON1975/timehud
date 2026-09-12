@@ -211,6 +211,7 @@ public partial class MainWindow : Window
         if (fx.HasFlag(TickEffects.Finished))
         {
             _countdownTimer.Stop();
+            _sound.BeepLong();
             StartFlash();
         }
     }
