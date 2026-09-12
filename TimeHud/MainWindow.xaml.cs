@@ -39,6 +39,7 @@ public partial class MainWindow : Window
     private string _colorHex = ColorPalette.Lookup(ColorPalette.DefaultKey).Hex;
     private CountdownModel _countdown = new(30);
     private bool _showTimer = true;
+    private bool _flashing;
 
     public MainWindow()
     {
@@ -67,7 +68,7 @@ public partial class MainWindow : Window
         }
 
         Backdrop.Opacity = _opacity.Value;
-        Row.Opacity = _textOpacity.Value;
+        ApplyTextAlpha();
         ApplySize(_size.Value);
         ApplyFont(_fontKey);
         ApplyColor(_colorHex);
@@ -107,7 +108,7 @@ public partial class MainWindow : Window
         else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
         {
             if (e.Delta > 0) _textOpacity.StepUp(); else _textOpacity.StepDown();
-            Row.Opacity = _textOpacity.Value;
+            ApplyTextAlpha();
             SyncTextAlphaMenuChecks();
         }
         else
@@ -139,7 +140,7 @@ public partial class MainWindow : Window
     private void OnTextAlphaPresetClick(object sender, RoutedEventArgs e)
     {
         _textOpacity = new OpacityModel(double.Parse((string)((MenuItem)sender).Tag, CultureInfo.InvariantCulture));
-        Row.Opacity = _textOpacity.Value;
+        ApplyTextAlpha();
         SyncTextAlphaMenuChecks();
         SaveCurrent();
     }
@@ -254,12 +255,26 @@ public partial class MainWindow : Window
         TimerIcon.Data = _countdown.State == CountdownState.Idle ? PlayIcon : ResetIcon;
     }
 
-    // Flash lives on TimerText.Opacity (base 1.0); user text alpha lives on Row.Opacity, so the
-    // two never interfere. Foreground is a local override that ClearValue returns to the inherited color.
+    // Text alpha is applied per element rather than on Row, so the finished countdown can be pushed
+    // to full opacity on its own: a child can never be more opaque than its parent.
+    private void ApplyTextAlpha()
+    {
+        var a = _textOpacity.Value;
+        ClockText.Opacity = a;
+        Divider.Opacity = 0.5 * a;
+        TimerButton.Opacity = a;
+        TimerText.Opacity = _flashing ? 1.0 : a;
+    }
+
+    // Flash: red foreground + blink animation on TimerText.Opacity from a base of 1.0 (text alpha
+    // is dropped for the countdown while it's at 00:00). Foreground is a local override that
+    // ClearValue returns to the inherited color.
     private void StartFlash()
     {
+        _flashing = true;
+        ApplyTextAlpha();
         TimerText.Foreground = HexToBrush(ColorPalette.Lookup("red").Hex);
-        var blink = new DoubleAnimation(1.0, 0.15, TimeSpan.FromMilliseconds(250))
+        var blink = new DoubleAnimation(1.0, 0.15, TimeSpan.FromMilliseconds(400))
         {
             AutoReverse = true,
             RepeatBehavior = RepeatBehavior.Forever,
@@ -269,8 +284,10 @@ public partial class MainWindow : Window
 
     private void StopFlash()
     {
+        _flashing = false;
         TimerText.BeginAnimation(OpacityProperty, null);
         TimerText.ClearValue(ForegroundProperty);
+        ApplyTextAlpha();
     }
 
     private void SyncTimerMenuChecks()

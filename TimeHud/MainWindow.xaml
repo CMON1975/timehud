@@ -72,7 +72,7 @@
     <Grid>
         <Border x:Name="Backdrop" CornerRadius="6" Background="#202020"/>
         <!-- Row carries font family/size/color as TextElement attached properties (inherited by both
-             TextBlocks) and text alpha as Row.Opacity. Divider and icon brushes are set from code. -->
+             TextBlocks). Text alpha is applied per element from code (ApplyTextAlpha), as are the divider and icon brushes. -->
         <StackPanel x:Name="Row" Orientation="Horizontal" Margin="10,5"
                     TextElement.Foreground="#00FF5A" TextElement.FontSize="48">
             <TextBlock x:Name="ClockText" VerticalAlignment="Center" Text="0000.00.00 (XXX) 00:00:00"/>
