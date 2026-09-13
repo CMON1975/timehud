@@ -50,6 +50,7 @@ public class SettingsStoreTests : IDisposable
             FontKey = "cascadia",
             Color = "#FFB000",
             TimerMinutes = 15,
+            WalkMinutes = 3,
             ShowTimer = false
         };
         SettingsStore.Save(_path, original);
@@ -63,6 +64,7 @@ public class SettingsStoreTests : IDisposable
         Assert.Equal(original.FontKey, loaded.FontKey);
         Assert.Equal(original.Color, loaded.Color);
         Assert.Equal(original.TimerMinutes, loaded.TimerMinutes);
+        Assert.Equal(original.WalkMinutes, loaded.WalkMinutes);
         Assert.Equal(original.ShowTimer, loaded.ShowTimer);
     }
 
@@ -89,6 +91,12 @@ public class SettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Default_walk_minutes_is_5()
+    {
+        Assert.Equal(5, Settings.Default.WalkMinutes);
+    }
+
+    [Fact]
     public void Default_show_timer_is_true()
     {
         Assert.True(Settings.Default.ShowTimer);
@@ -100,6 +108,7 @@ public class SettingsStoreTests : IDisposable
         File.WriteAllText(_path, """{ "Opacity": 0.3, "FontSize": 32, "FontKey": "consolas", "Color": "#FFB000" }""");
         var s = SettingsStore.Load(_path);
         Assert.Equal(30, s.TimerMinutes);
+        Assert.Equal(5, s.WalkMinutes);
         Assert.True(s.ShowTimer);
     }
 

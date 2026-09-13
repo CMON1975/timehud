@@ -56,12 +56,21 @@
             <MenuItem x:Name="TimerMenu" Header="Timer">
                 <MenuItem x:Name="ShowTimerMenu" Header="Show timer" IsCheckable="True" Click="OnShowTimerClick"/>
                 <Separator/>
-                <MenuItem Header="5 min"  IsCheckable="True" Click="OnTimerPresetClick" Tag="5"/>
-                <MenuItem Header="10 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="10"/>
-                <MenuItem Header="15 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="15"/>
-                <MenuItem Header="30 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="30"/>
-                <MenuItem Header="45 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="45"/>
-                <MenuItem Header="60 min" IsCheckable="True" Click="OnTimerPresetClick" Tag="60"/>
+                <MenuItem x:Name="WorkMenu" Header="Work length">
+                    <MenuItem Header="5 min"  IsCheckable="True" Click="OnWorkPresetClick" Tag="5"/>
+                    <MenuItem Header="10 min" IsCheckable="True" Click="OnWorkPresetClick" Tag="10"/>
+                    <MenuItem Header="15 min" IsCheckable="True" Click="OnWorkPresetClick" Tag="15"/>
+                    <MenuItem Header="30 min" IsCheckable="True" Click="OnWorkPresetClick" Tag="30"/>
+                    <MenuItem Header="45 min" IsCheckable="True" Click="OnWorkPresetClick" Tag="45"/>
+                    <MenuItem Header="60 min" IsCheckable="True" Click="OnWorkPresetClick" Tag="60"/>
+                </MenuItem>
+                <MenuItem x:Name="WalkMenu" Header="Walk length">
+                    <MenuItem Header="1 min"  IsCheckable="True" Click="OnWalkPresetClick" Tag="1"/>
+                    <MenuItem Header="2 min"  IsCheckable="True" Click="OnWalkPresetClick" Tag="2"/>
+                    <MenuItem Header="3 min"  IsCheckable="True" Click="OnWalkPresetClick" Tag="3"/>
+                    <MenuItem Header="5 min"  IsCheckable="True" Click="OnWalkPresetClick" Tag="5"/>
+                    <MenuItem Header="10 min" IsCheckable="True" Click="OnWalkPresetClick" Tag="10"/>
+                </MenuItem>
             </MenuItem>
             <MenuItem x:Name="AutostartMenu" Header="Start with Windows" IsCheckable="True" Click="OnAutostartClick"/>
             <MenuItem Header="Reset position" Click="OnResetPositionClick"/>
@@ -88,9 +97,13 @@
                             </Border>
                         </ControlTemplate>
                     </Button.Template>
-                    <Viewbox x:Name="TimerIconBox" Stretch="Uniform" Width="38" Height="38">
+                    <Viewbox x:Name="TimerIconBox" Stretch="Uniform" Width="38" Height="38" RenderTransformOrigin="0.5,0.5">
+                        <!-- Rocked cw/ccw from code-behind while the walk countdown runs. -->
+                        <Viewbox.RenderTransform>
+                            <RotateTransform x:Name="TimerIconRotate"/>
+                        </Viewbox.RenderTransform>
                         <Canvas Width="24" Height="24">
-                            <!-- Lucide icon (play / rotate-ccw), swapped from code-behind. -->
+                            <!-- Lucide-style icon (play / rotate-ccw / walking figure), swapped from code-behind. -->
                             <Path x:Name="TimerIcon"
                                   Stroke="#00FF5A"
                                   StrokeThickness="2"

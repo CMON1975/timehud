@@ -28,18 +28,29 @@ public partial class MainWindow : Window
     private readonly AutostartManager _autostart = new(new RegistryStore());
     private readonly ISoundPlayer _sound = new TonePlayer();
 
-    // Lucide "play" and "rotate-ccw" (24x24 viewBox, stroke 2, round caps/joins).
+    // Lucide "play" and "rotate-ccw" plus a hand-drawn walking figure (24x24 viewBox, stroke 2, round caps/joins).
     private static readonly Geometry PlayIcon  = Geometry.Parse("M6 3 L20 12 L6 21 Z");
     private static readonly Geometry ResetIcon = Geometry.Parse("M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5");
+    private static readonly Geometry WalkIcon  = Geometry.Parse(
+        "M15 4 a2 2 0 1 1 -4 0 a2 2 0 1 1 4 0 " +   // head
+        "M12.5 6.5 L11 13 L14.5 16 L13.5 22 " +     // torso + front leg
+        "M11 13 L9 17.5 L6 21 " +                   // back leg
+        "M12 8 L15.5 11 L18 9 " +                   // front arm
+        "M12 8 L8.5 10.5 L7 13.5");                 // back arm
+
+    // Finish-flash colours: red after the work countdown, a "go" green after the walk (deliberately
+    // brighter than the phosphor preset so it still reads as a distinct flash when the clock is green).
+    private const string WalkDoneHex = "#39FF14";
 
     private OpacityModel _opacity = new(0.75);
     private OpacityModel _textOpacity = new(1.00);
     private SizeModel _size = new(48);
     private string _fontKey = FontRegistry.DefaultKey;
     private string _colorHex = ColorPalette.Lookup(ColorPalette.DefaultKey).Hex;
-    private CountdownModel _countdown = new(30);
+    private StandUpCycle _cycle = new(StandUpCycle.DefaultWorkMinutes, StandUpCycle.DefaultWalkMinutes);
     private bool _showTimer = true;
     private bool _flashing;
+    private bool _rocking;
 
     public MainWindow()
     {
@@ -57,7 +68,7 @@ public partial class MainWindow : Window
         _size = new SizeModel(s.FontSize);
         _fontKey = s.FontKey;
         _colorHex = s.Color;
-        _countdown = new CountdownModel(s.TimerMinutes);
+        _cycle = new StandUpCycle(s.TimerMinutes, s.WalkMinutes);
         _showTimer = s.ShowTimer;
 
         if (s.X is double x && s.Y is double y)
@@ -195,9 +206,11 @@ public partial class MainWindow : Window
 
     // ---- Stand-up timer ----
 
+    // One button drives the whole cycle: play → (work runs) reset → at 00:00 walk → (walk runs,
+    // icon rocks) → at 00:00 reset → next work cycle. StandUpCycle.Press encodes the transitions.
     private void OnTimerButtonClick(object sender, RoutedEventArgs e)
     {
-        _countdown.Start(DateTime.UtcNow);
+        _cycle.Press(DateTime.UtcNow);
         StopFlash();
         RefreshTimerUi();
         _countdownTimer.Start();
@@ -205,22 +218,38 @@ public partial class MainWindow : Window
 
     private void OnCountdownTick(object? sender, EventArgs e)
     {
-        var fx = _countdown.Tick(DateTime.UtcNow);
+        var fx = _cycle.Tick(DateTime.UtcNow);
         if (fx.HasFlag(TickEffects.Beep)) _sound.Beep();
-        TimerText.Text = CountdownFormatter.Format(_countdown.RemainingSeconds);
+        TimerText.Text = CountdownFormatter.Format(_cycle.RemainingSeconds);
         if (fx.HasFlag(TickEffects.Finished))
         {
             _countdownTimer.Stop();
             _sound.BeepLong();
-            StartFlash();
+            StartFlash(_cycle.Phase == CyclePhase.Work ? ColorPalette.Lookup("red").Hex : WalkDoneHex);
+            RefreshTimerUi();
         }
     }
 
-    private void OnTimerPresetClick(object sender, RoutedEventArgs e)
+    private void OnWorkPresetClick(object sender, RoutedEventArgs e)
     {
-        var minutes = int.Parse((string)((MenuItem)sender).Tag, CultureInfo.InvariantCulture);
-        _countdown.SetDuration(minutes, DateTime.UtcNow);
-        if (_countdown.State == CountdownState.Running)
+        _cycle.SetWorkMinutes(PresetMinutes(sender), DateTime.UtcNow);
+        AfterLengthChange();
+    }
+
+    private void OnWalkPresetClick(object sender, RoutedEventArgs e)
+    {
+        _cycle.SetWalkMinutes(PresetMinutes(sender), DateTime.UtcNow);
+        AfterLengthChange();
+    }
+
+    private static int PresetMinutes(object sender) =>
+        int.Parse((string)((MenuItem)sender).Tag, CultureInfo.InvariantCulture);
+
+    // A length change restarts the current phase if it was running or finished (see StandUpCycle),
+    // so make sure the tick timer is going and any finish flash is gone.
+    private void AfterLengthChange()
+    {
+        if (_cycle.State == CountdownState.Running)
         {
             StopFlash();
             _countdownTimer.Start();
@@ -237,7 +266,7 @@ public partial class MainWindow : Window
         {
             _countdownTimer.Stop();
             StopFlash();
-            _countdown.Cancel();
+            _cycle.Cancel();
             RefreshTimerUi();
         }
         ApplyShowTimer();
@@ -250,10 +279,42 @@ public partial class MainWindow : Window
         ShowTimerMenu.IsChecked = _showTimer;
     }
 
+    // Icon per (phase, state); the walk rock animation runs only while the walk countdown is running.
     private void RefreshTimerUi()
     {
-        TimerText.Text = CountdownFormatter.Format(_countdown.RemainingSeconds);
-        TimerIcon.Data = _countdown.State == CountdownState.Idle ? PlayIcon : ResetIcon;
+        TimerText.Text = CountdownFormatter.Format(_cycle.RemainingSeconds);
+        TimerIcon.Data = (_cycle.Phase, _cycle.State) switch
+        {
+            (CyclePhase.Work, CountdownState.Idle) => PlayIcon,
+            (CyclePhase.Work, CountdownState.Running) => ResetIcon,
+            (CyclePhase.Work, CountdownState.Finished) => WalkIcon,
+            (CyclePhase.Walk, CountdownState.Running) => WalkIcon,
+            _ => ResetIcon,
+        };
+        if (_cycle.Phase == CyclePhase.Walk && _cycle.State == CountdownState.Running)
+            StartWalkRock();
+        else
+            StopWalkRock();
+    }
+
+    private void StartWalkRock()
+    {
+        if (_rocking) return;
+        _rocking = true;
+        var rock = new DoubleAnimation(-12, 12, TimeSpan.FromMilliseconds(350))
+        {
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+        };
+        TimerIconRotate.BeginAnimation(RotateTransform.AngleProperty, rock);
+    }
+
+    private void StopWalkRock()
+    {
+        if (!_rocking) return;
+        _rocking = false;
+        TimerIconRotate.BeginAnimation(RotateTransform.AngleProperty, null);
+        TimerIconRotate.Angle = 0;
     }
 
     // Text alpha is applied per element rather than on Row, so the finished countdown can be pushed
@@ -267,14 +328,14 @@ public partial class MainWindow : Window
         TimerText.Opacity = _flashing ? 1.0 : a;
     }
 
-    // Flash: red foreground + blink animation on TimerText.Opacity from a base of 1.0 (text alpha
-    // is dropped for the countdown while it's at 00:00). Foreground is a local override that
-    // ClearValue returns to the inherited color.
-    private void StartFlash()
+    // Flash: coloured foreground (red after work, bright green after walk) + blink animation on
+    // TimerText.Opacity from a base of 1.0 (text alpha is dropped for the countdown while it's at
+    // 00:00). Foreground is a local override that ClearValue returns to the inherited color.
+    private void StartFlash(string hex)
     {
         _flashing = true;
         ApplyTextAlpha();
-        TimerText.Foreground = HexToBrush(ColorPalette.Lookup("red").Hex);
+        TimerText.Foreground = HexToBrush(hex);
         var blink = new DoubleAnimation(1.0, 0.15, TimeSpan.FromMilliseconds(400))
         {
             AutoReverse = true,
@@ -293,9 +354,12 @@ public partial class MainWindow : Window
 
     private void SyncTimerMenuChecks()
     {
-        foreach (var item in TimerMenu.Items.OfType<MenuItem>())
+        foreach (var item in WorkMenu.Items.OfType<MenuItem>())
             if (item.Tag is string tag)
-                item.IsChecked = int.Parse(tag, CultureInfo.InvariantCulture) == _countdown.DurationMinutes;
+                item.IsChecked = int.Parse(tag, CultureInfo.InvariantCulture) == _cycle.WorkMinutes;
+        foreach (var item in WalkMenu.Items.OfType<MenuItem>())
+            if (item.Tag is string tag)
+                item.IsChecked = int.Parse(tag, CultureInfo.InvariantCulture) == _cycle.WalkMinutes;
     }
 
     private void SyncFontMenuChecks()
@@ -371,7 +435,8 @@ public partial class MainWindow : Window
         FontSize = _size.Value,
         FontKey = _fontKey,
         Color = _colorHex,
-        TimerMinutes = _countdown.DurationMinutes,
+        TimerMinutes = _cycle.WorkMinutes,
+        WalkMinutes = _cycle.WalkMinutes,
         ShowTimer = _showTimer,
     });
 }

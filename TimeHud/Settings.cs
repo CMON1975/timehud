@@ -10,6 +10,7 @@ public sealed class Settings
     public string FontKey { get; set; } = "cascadiamono";
     public string Color { get; set; } = "#00FF5A";
     public int TimerMinutes { get; set; } = 30;
+    public int WalkMinutes { get; set; } = 5;
     public bool ShowTimer { get; set; } = true;
 
     public static Settings Default => new();
