@@ -28,15 +28,13 @@ public partial class MainWindow : Window
     private readonly AutostartManager _autostart = new(new RegistryStore());
     private readonly ISoundPlayer _sound = new TonePlayer();
 
-    // Lucide "play" and "rotate-ccw" plus a hand-drawn walking figure (24x24 viewBox, stroke 2, round caps/joins).
+    // Lucide "play", "rotate-ccw" and "footprints" (24x24 viewBox, stroke 2, round caps/joins).
     private static readonly Geometry PlayIcon  = Geometry.Parse("M6 3 L20 12 L6 21 Z");
     private static readonly Geometry ResetIcon = Geometry.Parse("M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5");
     private static readonly Geometry WalkIcon  = Geometry.Parse(
-        "M15 4 a2 2 0 1 1 -4 0 a2 2 0 1 1 4 0 " +   // head
-        "M12.5 6.5 L11 13 L14.5 16 L13.5 22 " +     // torso + front leg
-        "M11 13 L9 17.5 L6 21 " +                   // back leg
-        "M12 8 L15.5 11 L18 9 " +                   // front arm
-        "M12 8 L8.5 10.5 L7 13.5");                 // back arm
+        "M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z " +
+        "M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z " +
+        "M16 17h4 M4 13h4");
 
     // Finish-flash colours: red after the work countdown, a "go" green after the walk (deliberately
     // brighter than the phosphor preset so it still reads as a distinct flash when the clock is green).
@@ -50,7 +48,6 @@ public partial class MainWindow : Window
     private StandUpCycle _cycle = new(StandUpCycle.DefaultWorkMinutes, StandUpCycle.DefaultWalkMinutes);
     private bool _showTimer = true;
     private bool _flashing;
-    private bool _rocking;
 
     public MainWindow()
     {
@@ -206,8 +203,8 @@ public partial class MainWindow : Window
 
     // ---- Stand-up timer ----
 
-    // One button drives the whole cycle: play → (work runs) reset → at 00:00 walk → (walk runs,
-    // icon rocks) → at 00:00 reset → next work cycle. StandUpCycle.Press encodes the transitions.
+    // One button drives the whole cycle: play → (work runs) reset → at 00:00 footprints → (walk
+    // runs) → at 00:00 reset → next work cycle. StandUpCycle.Press encodes the transitions.
     private void OnTimerButtonClick(object sender, RoutedEventArgs e)
     {
         _cycle.Press(DateTime.UtcNow);
@@ -279,7 +276,7 @@ public partial class MainWindow : Window
         ShowTimerMenu.IsChecked = _showTimer;
     }
 
-    // Icon per (phase, state); the walk rock animation runs only while the walk countdown is running.
+    // Icon per (phase, state).
     private void RefreshTimerUi()
     {
         TimerText.Text = CountdownFormatter.Format(_cycle.RemainingSeconds);
@@ -291,30 +288,6 @@ public partial class MainWindow : Window
             (CyclePhase.Walk, CountdownState.Running) => WalkIcon,
             _ => ResetIcon,
         };
-        if (_cycle.Phase == CyclePhase.Walk && _cycle.State == CountdownState.Running)
-            StartWalkRock();
-        else
-            StopWalkRock();
-    }
-
-    private void StartWalkRock()
-    {
-        if (_rocking) return;
-        _rocking = true;
-        var rock = new DoubleAnimation(-12, 12, TimeSpan.FromMilliseconds(350))
-        {
-            AutoReverse = true,
-            RepeatBehavior = RepeatBehavior.Forever,
-        };
-        TimerIconRotate.BeginAnimation(RotateTransform.AngleProperty, rock);
-    }
-
-    private void StopWalkRock()
-    {
-        if (!_rocking) return;
-        _rocking = false;
-        TimerIconRotate.BeginAnimation(RotateTransform.AngleProperty, null);
-        TimerIconRotate.Angle = 0;
     }
 
     // Text alpha is applied per element rather than on Row, so the finished countdown can be pushed

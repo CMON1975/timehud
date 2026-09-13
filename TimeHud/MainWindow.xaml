@@ -97,13 +97,9 @@
                             </Border>
                         </ControlTemplate>
                     </Button.Template>
-                    <Viewbox x:Name="TimerIconBox" Stretch="Uniform" Width="38" Height="38" RenderTransformOrigin="0.5,0.5">
-                        <!-- Rocked cw/ccw from code-behind while the walk countdown runs. -->
-                        <Viewbox.RenderTransform>
-                            <RotateTransform x:Name="TimerIconRotate"/>
-                        </Viewbox.RenderTransform>
+                    <Viewbox x:Name="TimerIconBox" Stretch="Uniform" Width="38" Height="38">
                         <Canvas Width="24" Height="24">
-                            <!-- Lucide-style icon (play / rotate-ccw / walking figure), swapped from code-behind. -->
+                            <!-- Lucide icon (play / rotate-ccw / footprints), swapped from code-behind. -->
                             <Path x:Name="TimerIcon"
                                   Stroke="#00FF5A"
                                   StrokeThickness="2"
