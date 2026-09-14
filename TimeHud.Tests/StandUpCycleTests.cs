@@ -88,14 +88,28 @@ public class StandUpCycleTests
     }
 
     [Fact]
-    public void Press_while_walk_running_restarts_walk()
+    public void Press_while_walk_running_returns_to_work_and_starts_it()
     {
         var c = FinishedWork();
         c.Press(At(60));
         c.Tick(At(100));
         c.Press(At(100));
-        Assert.Equal(CyclePhase.Walk, c.Phase);
-        Assert.Equal(120, c.RemainingSeconds);
+        Assert.Equal(CyclePhase.Work, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(60, c.RemainingSeconds);
+        c.Tick(At(101));
+        Assert.Equal(59, c.RemainingSeconds);
+    }
+
+    [Fact]
+    public void Press_while_walk_running_uses_current_work_length()
+    {
+        var c = FinishedWork();
+        c.Press(At(60));
+        c.SetWorkMinutes(5, At(70));
+        c.Press(At(100));
+        Assert.Equal(CyclePhase.Work, c.Phase);
+        Assert.Equal(300, c.RemainingSeconds);
     }
 
     [Fact]

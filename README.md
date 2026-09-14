@@ -5,7 +5,7 @@ Always-on-top HUD clock for Windows 11. Borderless, transparent, runtime-configu
 ## Features
 
 - `yyyy.MM.dd (DDD) HH:mm:ss` format (uppercase 3-letter weekday), ticking each second
-- Stand-up cycle beside the clock (`CLOCK | 30:00 ▶`): press play to count down the work block, one beep per second for the last three seconds, then a tone and the digits blink red. The button becomes footprints (Lucide `footprints`): press it to start the walk countdown (5:00 by default). At 00:00 the same beeps and tone play, the digits blink bright green, and the button becomes reset (Lucide `rotate-ccw`), which starts the next work block. Pressing the button mid-countdown restarts that phase. Optional, on by default.
+- Stand-up cycle beside the clock (`CLOCK | 30:00 ▶`): press play to count down the work block, one beep per second for the last three seconds, then a tone and the digits blink red. The button becomes footprints (Lucide `footprints`): press it to start the walk countdown (5:00 by default). At 00:00 the same beeps and tone play, the digits blink bright green, and the button becomes reset (Lucide `rotate-ccw`), which starts the next work block. Pressing the button mid-work restarts the work block; pressing it mid-walk cuts the walk short and starts the next work block. Optional, on by default.
 - Drag with left-click anywhere on the clock
 - Mouse wheel: backdrop opacity (10%–100%, 5% steps)
 - `Ctrl` + wheel: font size (16–200pt, 4pt steps)

@@ -28,15 +28,22 @@ public sealed class StandUpCycle
     }
 
     /// <summary>
-    /// The single button action. Idle/Running restart the current phase; Finished advances
-    /// to the other phase and starts it.
+    /// The single button action. Work/Idle and Work/Running (re)start the work countdown;
+    /// Work/Finished advances to Walk and starts it. Any press during Walk, running or finished,
+    /// returns to Work and starts a fresh work countdown, so cutting a walk short still lands
+    /// on the seated timer.
     /// </summary>
     public void Press(DateTime now)
     {
-        if (_countdown.State == CountdownState.Finished)
+        if (Phase == CyclePhase.Walk)
         {
-            Phase = Phase == CyclePhase.Work ? CyclePhase.Walk : CyclePhase.Work;
-            _countdown.SetDuration(PhaseMinutes, now); // Finished → restarts at the new duration
+            Phase = CyclePhase.Work;
+            _countdown.SetDuration(WorkMinutes, now); // Running/Finished → restarts at the work duration
+        }
+        else if (_countdown.State == CountdownState.Finished)
+        {
+            Phase = CyclePhase.Walk;
+            _countdown.SetDuration(WalkMinutes, now); // Finished → restarts at the walk duration
         }
         else
         {
@@ -67,6 +74,4 @@ public sealed class StandUpCycle
     }
 
     public TickEffects Tick(DateTime now) => _countdown.Tick(now);
-
-    private int PhaseMinutes => Phase == CyclePhase.Work ? WorkMinutes : WalkMinutes;
 }
