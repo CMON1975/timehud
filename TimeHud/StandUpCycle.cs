@@ -51,6 +51,17 @@ public sealed class StandUpCycle
         }
     }
 
+    /// <summary>
+    /// Jump straight into a walk at the current walk length from any state: Work/Idle, Work/Running
+    /// (the seated countdown is abandoned), Work/Finished, or Walk (restarts the walk from full).
+    /// </summary>
+    public void StartWalk(DateTime now)
+    {
+        Phase = CyclePhase.Walk;
+        _countdown.SetDuration(WalkMinutes, now); // Idle wouldn't start, so Start explicitly
+        _countdown.Start(now);
+    }
+
     /// <summary>Change the work length. Only affects the countdown while in the Work phase.</summary>
     public void SetWorkMinutes(int minutes, DateTime now)
     {

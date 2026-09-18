@@ -108,6 +108,25 @@
                         </Canvas>
                     </Viewbox>
                 </Button>
+                <!-- "Walk now": visible only during the Work phase; jumps straight into a walk countdown. -->
+                <Button x:Name="WalkButton" Click="OnWalkButtonClick" Margin="4,0,0,0"
+                        Focusable="False" Cursor="Hand" VerticalAlignment="Center" ToolTip="Walk now">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="Transparent" Padding="2">
+                                <ContentPresenter/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Viewbox x:Name="WalkIconBox" Stretch="Uniform" Width="38" Height="38">
+                        <Canvas Width="24" Height="24">
+                            <Path x:Name="WalkIconPath"
+                                  Stroke="#00FF5A"
+                                  StrokeThickness="2"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
             </StackPanel>
         </StackPanel>
     </Grid>

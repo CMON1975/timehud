@@ -82,6 +82,7 @@ public partial class MainWindow : Window
         ApplyColor(_colorHex);
         ClockText.Text = ClockFormatter.Format(DateTime.Now);
         ApplyShowTimer();
+        WalkIconPath.Data = WalkIcon;
         RefreshTimerUi();
 
         SyncFontMenuChecks();
@@ -190,12 +191,14 @@ public partial class MainWindow : Window
         TextElement.SetForeground(Row, brush);
         Divider.Fill = brush;
         TimerIcon.Stroke = brush;
+        WalkIconPath.Stroke = brush;
     }
 
     private void ApplySize(int pt)
     {
         TextElement.SetFontSize(Row, pt);
         TimerIconBox.Width = TimerIconBox.Height = pt * 0.8;
+        WalkIconBox.Width = WalkIconBox.Height = pt * 0.8;
     }
 
     private static SolidColorBrush HexToBrush(string hex) =>
@@ -208,6 +211,15 @@ public partial class MainWindow : Window
     private void OnTimerButtonClick(object sender, RoutedEventArgs e)
     {
         _cycle.Press(DateTime.UtcNow);
+        StopFlash();
+        RefreshTimerUi();
+        _countdownTimer.Start();
+    }
+
+    // Skip straight to a walk at the current walk length, whatever the seated timer is doing.
+    private void OnWalkButtonClick(object sender, RoutedEventArgs e)
+    {
+        _cycle.StartWalk(DateTime.UtcNow);
         StopFlash();
         RefreshTimerUi();
         _countdownTimer.Start();
@@ -288,6 +300,9 @@ public partial class MainWindow : Window
             (CyclePhase.Walk, CountdownState.Running) => WalkIcon,
             _ => ResetIcon,
         };
+        // The walk-now button only makes sense while seated; during a walk the main button already
+        // shows footprints, and a second one would just be a "restart walk" nobody asked for.
+        WalkButton.Visibility = _cycle.Phase == CyclePhase.Work ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // Text alpha is applied per element rather than on Row, so the finished countdown can be pushed
@@ -298,6 +313,7 @@ public partial class MainWindow : Window
         ClockText.Opacity = a;
         Divider.Opacity = 0.5 * a;
         TimerButton.Opacity = a;
+        WalkButton.Opacity = a;
         TimerText.Opacity = _flashing ? 1.0 : a;
     }
 

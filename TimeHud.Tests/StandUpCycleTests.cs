@@ -218,4 +218,62 @@ public class StandUpCycleTests
         Assert.Equal(CountdownState.Idle, c.State);
         Assert.Equal(60, c.RemainingSeconds);
     }
+
+    [Fact]
+    public void StartWalk_from_work_idle_starts_walk_at_walk_length()
+    {
+        var c = new StandUpCycle(30, 5);
+        c.StartWalk(T0);
+        Assert.Equal(CyclePhase.Walk, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(300, c.RemainingSeconds);
+        c.Tick(At(10));
+        Assert.Equal(290, c.RemainingSeconds);
+    }
+
+    [Fact]
+    public void StartWalk_while_work_running_abandons_work_and_starts_walk()
+    {
+        var c = new StandUpCycle(30, 5);
+        c.Press(T0);
+        c.Tick(At(100));
+        c.StartWalk(At(100));
+        Assert.Equal(CyclePhase.Walk, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(300, c.RemainingSeconds);
+    }
+
+    [Fact]
+    public void StartWalk_after_work_finished_starts_walk()
+    {
+        var c = FinishedWork();
+        c.StartWalk(At(60));
+        Assert.Equal(CyclePhase.Walk, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(120, c.RemainingSeconds);
+    }
+
+    [Fact]
+    public void StartWalk_during_walk_restarts_walk_from_full()
+    {
+        var c = FinishedWork();
+        c.Press(At(60));
+        c.Tick(At(90));
+        c.StartWalk(At(90));
+        Assert.Equal(CyclePhase.Walk, c.Phase);
+        Assert.Equal(120, c.RemainingSeconds);
+    }
+
+    [Fact]
+    public void Press_after_started_walk_finishes_returns_to_work()
+    {
+        var c = new StandUpCycle(1, 2);
+        c.StartWalk(T0);
+        var fx = c.Tick(At(120));
+        Assert.True(fx.HasFlag(TickEffects.Finished));
+        c.Press(At(120));
+        Assert.Equal(CyclePhase.Work, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(60, c.RemainingSeconds);
+    }
 }
