@@ -300,9 +300,12 @@ public partial class MainWindow : Window
             (CyclePhase.Walk, CountdownState.Running) => WalkIcon,
             _ => ResetIcon,
         };
-        // The walk-now button only makes sense while seated; during a walk the main button already
-        // shows footprints, and a second one would just be a "restart walk" nobody asked for.
-        WalkButton.Visibility = _cycle.Phase == CyclePhase.Work ? Visibility.Visible : Visibility.Collapsed;
+        // The walk-now button only makes sense while the main button is not already footprints:
+        // once the work countdown finishes (and during a walk) the main button is the walk button,
+        // and a second pair of footprints beside it was just a duplicate.
+        WalkButton.Visibility = _cycle.Phase == CyclePhase.Work && _cycle.State != CountdownState.Finished
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     // Text alpha is applied per element rather than on Row, so the finished countdown can be pushed
