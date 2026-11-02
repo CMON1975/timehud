@@ -51,7 +51,8 @@ public class SettingsStoreTests : IDisposable
             Color = "#FFB000",
             TimerMinutes = 15,
             WalkMinutes = 3,
-            ShowTimer = false
+            ShowTimer = false,
+            Hotkey = "Ctrl+Shift+F9"
         };
         SettingsStore.Save(_path, original);
 
@@ -66,6 +67,7 @@ public class SettingsStoreTests : IDisposable
         Assert.Equal(original.TimerMinutes, loaded.TimerMinutes);
         Assert.Equal(original.WalkMinutes, loaded.WalkMinutes);
         Assert.Equal(original.ShowTimer, loaded.ShowTimer);
+        Assert.Equal(original.Hotkey, loaded.Hotkey);
     }
 
     [Fact]
@@ -110,6 +112,14 @@ public class SettingsStoreTests : IDisposable
         Assert.Equal(30, s.TimerMinutes);
         Assert.Equal(5, s.WalkMinutes);
         Assert.True(s.ShowTimer);
+    }
+
+    [Fact]
+    public void Load_defaults_hotkey_when_missing_from_json()
+    {
+        File.WriteAllText(_path, """{ "Opacity": 0.3, "FontSize": 32, "FontKey": "consolas", "Color": "#FFB000" }""");
+        var s = SettingsStore.Load(_path);
+        Assert.Equal("Ctrl+Alt+W", s.Hotkey);
     }
 
     [Fact]

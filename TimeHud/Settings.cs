@@ -12,6 +12,7 @@ public sealed class Settings
     public int TimerMinutes { get; set; } = 30;
     public int WalkMinutes { get; set; } = 5;
     public bool ShowTimer { get; set; } = true;
+    public string Hotkey { get; set; } = "Ctrl+Alt+W"; // raw text, parsed by HotkeySpec at launch
 
     public static Settings Default => new();
 }

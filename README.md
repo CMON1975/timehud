@@ -6,7 +6,7 @@ Always-on-top HUD clock for Windows 11. Borderless, transparent, runtime-configu
 
 - `yyyy.MM.dd (DDD) HH:mm:ss` format (uppercase 3-letter weekday), ticking each second
 - Stand-up cycle beside the clock (`CLOCK | 30:00 ▶`): press play to count down the work block, one beep per second for the last three seconds, then a tone and the digits blink red. The button becomes footprints (Lucide `footprints`): press it to start the walk countdown (5:00 by default). At 00:00 the same beeps and tone play, the digits blink bright green, and the button becomes reset (Lucide `rotate-ccw`), which starts the next work block. Pressing the button mid-work restarts the work block; pressing it mid-walk cuts the walk short and starts the next work block. Optional, on by default.
-- Global hotkey `Ctrl` + `Alt` + `W` (works from any app): moves the stand-up cycle to the next phase. It starts work, jumps from work to the walk (mid-countdown too), or ends the walk and starts the next work block. It never restarts the current phase. If another app already owns the combo, the Timer menu says so.
+- Global hotkey `Ctrl` + `Alt` + `W` (works from any app): moves the stand-up cycle to the next phase. It starts work, jumps from work to the walk (mid-countdown too), or ends the walk and starts the next work block. It never restarts the current phase. If another app already owns the combo, the Timer menu says so. To change it, exit TimeHud, set `"Hotkey"` in `settings.json` (e.g. `"Ctrl+Shift+F9"`, `"Win+Alt+1"`; modifiers Ctrl, Alt, Shift, Win plus one [WPF key name](https://learn.microsoft.com/dotnet/api/system.windows.input.key), at least one modifier), and start it again. An unreadable value falls back to `Ctrl+Alt+W` and the Timer menu says so.
 - Drag with left-click anywhere on the clock
 - Mouse wheel: backdrop opacity (10%–100%, 5% steps)
 - `Ctrl` + wheel: font size (16–200pt, 4pt steps)
@@ -21,7 +21,7 @@ Always-on-top HUD clock for Windows 11. Borderless, transparent, runtime-configu
   - **Reset position** — recenter on primary monitor
   - **Exit**
 - Self-keeping topmost: re-asserts `HWND_TOPMOST` every 2 seconds, defeating UAC / fullscreen demotion
-- All settings persist to `%APPDATA%\TimeHud\settings.json` (position, opacity, text alpha, size, font, color, work length, walk length, timer visibility, autostart); on every launch the previous file is snapshotted to `settings.json.bak` as a one-deep restore point
+- All settings persist to `%APPDATA%\TimeHud\settings.json` (position, opacity, text alpha, size, font, color, work length, walk length, timer visibility, hotkey, autostart); on every launch the previous file is snapshotted to `settings.json.bak` as a one-deep restore point
 
 ## Build & run
 
@@ -49,7 +49,7 @@ The result is `publish\TimeHud.exe` — framework-dependent, so the target machi
 dotnet test TimeHud\TimeHud.sln
 ```
 
-119 xUnit tests cover the pure-logic units (`ClockFormatter`, `CountdownModel`, `StandUpCycle`, `CountdownFormatter`, `OpacityModel`, `SizeModel`, `SettingsStore`, `AutostartManager`, `FontRegistry`, `ColorPalette`, `WavTone`). The WPF surface (drag, P/Invoke topmost, global hotkey, ColorDialog, timer button, flash animation, beep) is verified manually — see "Things that are easy to get wrong" in [CLAUDE.md](CLAUDE.md).
+142 xUnit tests cover the pure-logic units (`ClockFormatter`, `CountdownModel`, `StandUpCycle`, `CountdownFormatter`, `OpacityModel`, `SizeModel`, `SettingsStore`, `AutostartManager`, `FontRegistry`, `ColorPalette`, `WavTone`, `HotkeySpec`). The WPF surface (drag, P/Invoke topmost, global hotkey, ColorDialog, timer button, flash animation, beep) is verified manually — see "Things that are easy to get wrong" in [CLAUDE.md](CLAUDE.md).
 
 ## Repository layout
 

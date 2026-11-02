@@ -40,12 +40,11 @@ public partial class MainWindow : Window
     // brighter than the phosphor preset so it still reads as a distinct flash when the clock is green).
     private const string WalkDoneHex = "#39FF14";
 
-    // Global "next phase" hotkey (StandUpCycle.Advance). Change all three together.
-    private const ModifierKeys NextPhaseModifiers = ModifierKeys.Control | ModifierKeys.Alt;
-    private const Key NextPhaseKey = Key.W;
-    private const string NextPhaseLabel = "Ctrl+Alt+W";
+    // Global "next phase" hotkey (StandUpCycle.Advance), read from settings.json's "Hotkey" at launch.
+    // The raw text is saved back verbatim, so an invalid entry stays in the file to be fixed.
     private const int NextPhaseHotkeyId = 1;
     private GlobalHotkey? _nextPhaseHotkey;
+    private string _hotkeyText = Settings.Default.Hotkey;
 
     private OpacityModel _opacity = new(0.75);
     private OpacityModel _textOpacity = new(1.00);
@@ -74,6 +73,7 @@ public partial class MainWindow : Window
         _colorHex = s.Color;
         _cycle = new StandUpCycle(s.TimerMinutes, s.WalkMinutes);
         _showTimer = s.ShowTimer;
+        _hotkeyText = s.Hotkey;
 
         if (s.X is double x && s.Y is double y)
         {
@@ -107,10 +107,12 @@ public partial class MainWindow : Window
         _topmostTimer.Tick += (_, _) => TopmostKeeper.Reassert(this);
         _topmostTimer.Start();
 
-        _nextPhaseHotkey = new GlobalHotkey(this, NextPhaseHotkeyId, NextPhaseModifiers, NextPhaseKey, OnNextPhaseHotkey);
-        HotkeyInfoMenu.Header = _nextPhaseHotkey.IsRegistered
-            ? $"{NextPhaseLabel}: next phase"
-            : $"{NextPhaseLabel} is taken by another app";
+        var valid = HotkeySpec.TryParse(_hotkeyText, out var parsed);
+        var spec = parsed ?? HotkeySpec.Default;
+        _nextPhaseHotkey = new GlobalHotkey(this, NextPhaseHotkeyId, spec.Modifiers, spec.Key, OnNextPhaseHotkey);
+        var header = _nextPhaseHotkey.IsRegistered ? $"{spec}: next phase" : $"{spec} is taken by another app";
+        if (!valid) header += $" (couldn't read \"{_hotkeyText}\" in settings)";
+        HotkeyInfoMenu.Header = header;
     }
 
     private void OnRootMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -458,5 +460,6 @@ public partial class MainWindow : Window
         TimerMinutes = _cycle.WorkMinutes,
         WalkMinutes = _cycle.WalkMinutes,
         ShowTimer = _showTimer,
+        Hotkey = _hotkeyText,
     });
 }
