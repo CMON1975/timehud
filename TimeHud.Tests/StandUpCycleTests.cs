@@ -276,4 +276,58 @@ public class StandUpCycleTests
         Assert.Equal(CountdownState.Running, c.State);
         Assert.Equal(60, c.RemainingSeconds);
     }
+
+    [Fact]
+    public void Advance_from_work_idle_starts_work()
+    {
+        var c = new StandUpCycle(1, 2);
+        c.Advance(T0);
+        Assert.Equal(CyclePhase.Work, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(60, c.RemainingSeconds);
+    }
+
+    [Fact]
+    public void Advance_while_work_running_starts_walk_instead_of_restarting_work()
+    {
+        var c = new StandUpCycle(1, 2);
+        c.Press(T0);
+        c.Tick(At(30));
+        c.Advance(At(30));
+        Assert.Equal(CyclePhase.Walk, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(120, c.RemainingSeconds);
+    }
+
+    [Fact]
+    public void Advance_after_work_finished_starts_walk()
+    {
+        var c = FinishedWork();
+        c.Advance(At(60));
+        Assert.Equal(CyclePhase.Walk, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(120, c.RemainingSeconds);
+    }
+
+    [Fact]
+    public void Advance_while_walk_running_returns_to_work()
+    {
+        var c = FinishedWork();
+        c.Press(At(60));
+        c.Tick(At(100));
+        c.Advance(At(100));
+        Assert.Equal(CyclePhase.Work, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(60, c.RemainingSeconds);
+    }
+
+    [Fact]
+    public void Advance_after_walk_finished_starts_next_work()
+    {
+        var c = FinishedWalk();
+        c.Advance(At(180));
+        Assert.Equal(CyclePhase.Work, c.Phase);
+        Assert.Equal(CountdownState.Running, c.State);
+        Assert.Equal(60, c.RemainingSeconds);
+    }
 }

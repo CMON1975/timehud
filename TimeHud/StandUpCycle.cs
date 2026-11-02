@@ -62,6 +62,19 @@ public sealed class StandUpCycle
         _countdown.Start(now);
     }
 
+    /// <summary>
+    /// Go to the next phase, never restart the current one: Work/Idle starts work, a running or
+    /// finished work countdown hands off to the walk, and any walk hands off to the next work.
+    /// It differs from <see cref="Press"/> only at Work/Running, where Press restarts the work block.
+    /// </summary>
+    public void Advance(DateTime now)
+    {
+        if (Phase == CyclePhase.Work && _countdown.State != CountdownState.Idle)
+            StartWalk(now);
+        else
+            Press(now);
+    }
+
     /// <summary>Change the work length. Only affects the countdown while in the Work phase.</summary>
     public void SetWorkMinutes(int minutes, DateTime now)
     {
