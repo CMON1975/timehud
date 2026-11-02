@@ -40,6 +40,13 @@ public partial class MainWindow : Window
     // brighter than the phosphor preset so it still reads as a distinct flash when the clock is green).
     private const string WalkDoneHex = "#39FF14";
 
+    // Global "next phase" hotkey (StandUpCycle.Advance). Change all three together.
+    private const ModifierKeys NextPhaseModifiers = ModifierKeys.Control | ModifierKeys.Alt;
+    private const Key NextPhaseKey = Key.W;
+    private const string NextPhaseLabel = "Ctrl+Alt+W";
+    private const int NextPhaseHotkeyId = 1;
+    private GlobalHotkey? _nextPhaseHotkey;
+
     private OpacityModel _opacity = new(0.75);
     private OpacityModel _textOpacity = new(1.00);
     private SizeModel _size = new(48);
@@ -99,6 +106,11 @@ public partial class MainWindow : Window
 
         _topmostTimer.Tick += (_, _) => TopmostKeeper.Reassert(this);
         _topmostTimer.Start();
+
+        _nextPhaseHotkey = new GlobalHotkey(this, NextPhaseHotkeyId, NextPhaseModifiers, NextPhaseKey, OnNextPhaseHotkey);
+        HotkeyInfoMenu.Header = _nextPhaseHotkey.IsRegistered
+            ? $"{NextPhaseLabel}: next phase"
+            : $"{NextPhaseLabel} is taken by another app";
     }
 
     private void OnRootMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -220,6 +232,18 @@ public partial class MainWindow : Window
     private void OnWalkButtonClick(object sender, RoutedEventArgs e)
     {
         _cycle.StartWalk(DateTime.UtcNow);
+        StopFlash();
+        RefreshTimerUi();
+        _countdownTimer.Start();
+    }
+
+    // The global hotkey presses whichever button moves to the next phase (play, walk-now, footprints,
+    // or reset at the end of a walk); it never restarts the current phase. Ignored while the timer
+    // is hidden, so a hidden timer still never runs.
+    private void OnNextPhaseHotkey()
+    {
+        if (!_showTimer) return;
+        _cycle.Advance(DateTime.UtcNow);
         StopFlash();
         RefreshTimerUi();
         _countdownTimer.Start();
@@ -416,7 +440,11 @@ public partial class MainWindow : Window
 
     private void OnExitClick(object sender, RoutedEventArgs e) => Close();
 
-    private void OnClosing(object? sender, CancelEventArgs e) => SaveCurrent();
+    private void OnClosing(object? sender, CancelEventArgs e)
+    {
+        SaveCurrent();
+        _nextPhaseHotkey?.Dispose();
+    }
 
     private void SaveCurrent() => SettingsStore.Save(SettingsPath, new Settings
     {

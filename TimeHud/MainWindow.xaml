@@ -71,6 +71,8 @@
                     <MenuItem Header="5 min"  IsCheckable="True" Click="OnWalkPresetClick" Tag="5"/>
                     <MenuItem Header="10 min" IsCheckable="True" Click="OnWalkPresetClick" Tag="10"/>
                 </MenuItem>
+                <Separator/>
+                <MenuItem x:Name="HotkeyInfoMenu" Header="Ctrl+Alt+W: next phase" IsEnabled="False"/>
             </MenuItem>
             <MenuItem x:Name="AutostartMenu" Header="Start with Windows" IsCheckable="True" Click="OnAutostartClick"/>
             <MenuItem Header="Reset position" Click="OnResetPositionClick"/>
