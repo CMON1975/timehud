@@ -32,7 +32,6 @@ TimeHud splits into **TDD'd pure-C# units** and **WPF wiring** (single window, n
 - `AutostartManager` — registry HKCU\…\Run toggle, idempotent. Uses `IRegistryStore` seam; tests use an in-memory fake.
 - `FontRegistry` — 5-font key↔display-name+source map (`cascadiamono` default, `cascadia`, `consolas`, `dseg7`, `d7mono`); unknown→default. Modern monos are listed first; bundled DSEG7 + Digital-7 Mono come after a separator.
 - `WavTone` — in-memory 16-bit mono PCM WAV sine tone with 5 ms fade edges; tests check header fields, byte lengths, silent endpoints and peak amplitude.
-- `WavTone` — in-memory 16-bit mono PCM WAV sine tone with 5 ms fade edges; tests check header fields, byte lengths, silent endpoints and peak amplitude.
 - `ColorPalette` — 5-preset key↔display-name+hex map (`green` default phosphor `#00FF5A`, `amber`, `cyan`, `white`, `red`); unknown→default. Tests verify each preset's hex parses and matches the documented sRGB.
 
 **Untested WPF wiring:**
